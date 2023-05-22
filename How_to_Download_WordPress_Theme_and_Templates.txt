@@ -1,0 +1,3 @@
+sudo su
+chown apache:apache -R /var/www/html
+sudo service httpd restart

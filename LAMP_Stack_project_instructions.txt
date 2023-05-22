@@ -1,0 +1,114 @@
+a)	Create VPC and Its Components
+1 vpc, enable dns hostname and dns resolution
+1 internent Gw
+2 public Subnets--web Tier
+2 private subnets  --App/logic tier
+2 private subnets  -- Database teir
+1 public RT --web tier
+1 private RT  -- app tier
+1 private RT  -- databse teir
+1 private NAT  --app tier
+1 private NAT -- database teir
+Define the routes and the subnet association
+
+a) First Security group
+1. ELB Sec Group
+   allow traffic on http
+   allow traffic on https
+2. WebServer Sec Group
+   allow traffic on custom tcp source ELB Sec Group
+3. database SecGroup
+   allow msql protocol traffic on 3306 source Web Server SG
+4. EFS sec Group
+   allow NFS protocol traffic on web server
+   edit the EFS SG and allow NFS Protocol from EFS SEC GRoup
+5. SSHSec Group
+   allow ssh on 22 on myip
+6. edit efs sec group, allow ssh protocol source ssh sec group
+7. edit web server sec group, allow ssh protocl source is ssh sec group
+
+c) Next is To Create EFS
+1. choose your vpc
+2. select Database tier 1 and 2 as the subnets, 
+3. remove the default sec and select the efs sg
+
+d) Next is To Create RDS Database
+1. Create a subnet group
+2. select Avail. zone a and b
+3. select your vpc
+4. select the cidr of your database tier subnet
+5 click on create database msql, engine version 5.7.38
+6--free tier
+7 set credentials
+8. select t2.cro
+9. select your vpc
+10. give an initial db name
+11. create database
+
+ 
+e) Create EC2s
+1. Launch a setup server/ BastionHost
+   use amazon linux
+   our vpc
+   pub subnet 1
+   elb sg, ssh sg, web sg
+launch
+2. ssh into the newly launched server
+3. elavate privileg
+4. run an update 
+
+e) Create EC2 for the AppTiers
+1. Launch AppTier 1
+2. use our VPC
+3. AppTier Subnet 1
+4. Webserver -SG
+5. userdata for the dependencies
+
+f) Create EC2 for the AppTiers
+1. Launch AppTier 2
+2. use our VPC
+3. AppTier Subnet 1
+4. Webserver -SG
+5. userdata for the dependencies
+
+
+g)    Create ALB
+1. Launch ALB
+2.  Use our VPC
+3.map to public subnet 1&2
+4. create TG and put the apptier 1&2 as target
+
+h) AWS Certificate manager (ACM)
+1 . Request certificate for  ur DNS
+2. create certificate CNAME
+i) R53
+1.  Goto hosted zone
+2. create A alias record
+3. resolve the DNS of your ALB to your domain 
+
+j) Update ALB
+1.	Add listener
+2.	From Action, then forward traffic toTG
+3.	3. Choose ACM and select the certificate created earlier via ACM
+4.	After saving then edit the port 80 listener, by removing the “forward to” and choose redirect to port 443.
+k) Edit TG healthcheck
+1.	Goto TG > healthcheck >edit Healthcheck > Status code > add 301 behind 200 i.e (200,301)
+
+l) Connect to one of the AppTier Server (any of the servers will give you the same result cus they have EFS mounted)
+Jump from the public server to the private server
+
+1.	Open the private key used in launching the servers and copy the key.
+2.	Create file to save the key with any name but it must have “.pem” extension at the end
+3.	Vi  and paste the key (eg vi private-key.pem)
+4.	Change the key to private (eg chmod 400 private-key.pem)
+5.	Now jump into the private server using it IP by running  >ssh -I private-key.pem ec2-user@10.3.101.23
+
+m) Enable wordpress security connection, by editing wordpress wp file that you created earlier.
+1.	Vi /var/www/html/wp-config.php
+2.	2. Paste the ssl settings
+3.	Restart apache 
+
+
+
+
+   
